@@ -31,10 +31,15 @@ def main():
     parser.add_argument(
         "--urls", help="Path for text file listing URLs for a multiple RSS feeds"
     )
+    parser.add_argument("--limit_podcast", help="episode limit per podcast")
+    parser.add_argument("--limit_total", help="total episode limit for the batch")
     args = parser.parse_args()
 
     home_dir = args.home_dir if args.home_dir else "."
     home_dir = os.path.abspath(home_dir)
+    
+    limit_podcast = int(args.limit_podcast) if args.limit_podcast else -1
+    total_limit = int(args.limit_total) if args.limit_total else -1
 
     urls = set()
     if args.url:
@@ -49,11 +54,13 @@ def main():
         parser.print_help()
         exit(1)
 
-    download_podcasts(list(urls), home_dir)
+    download_podcasts(list(urls), home_dir, limit_podcast, total_limit)
 
 
-def download_podcasts(urls: list, home_dir: str) -> None:
+def download_podcasts(urls: list, home_dir: str, limit_podcast: int, limit_total: int) -> None:
+    total_downlaoded = 0
     for url in urls:
+        podcast_downloaded = 0
         fp = feedparser.parse(url)
         podslug = slugify(fp.feed.title)
         podcast_dir = os.path.join(home_dir, podslug)
@@ -61,10 +68,19 @@ def download_podcasts(urls: list, home_dir: str) -> None:
             os.makedirs(podcast_dir)
 
         for e in fp.entries:
-            download_podcast_episode(e, podcast_dir)
+            if limit_total > -1 and total_downlaoded >= limit_total:
+                print (f"downloaded {total_downlaoded} episodes, exiting batch") 
+                return
+            if limit_podcast > -1 and podcast_downloaded >= limit_podcast:
+                print (f"downloaded {podcast_downloaded} episodes, exiting podcast") 
+                break
+
+            if download_podcast_episode(e, podcast_dir):
+                total_downlaoded += 1
+                podcast_downloaded += 1
 
 
-def download_podcast_episode(episode, podcast_dir) -> None:
+def download_podcast_episode(episode, podcast_dir) -> bool:
     episode_date = parse_rss_date(episode.published).strftime("%Y%m%d")
     episode_base_name = f"{episode_date}-{slugify(episode.title)}"
     episode_link = [l for l in episode.links if l["rel"] == "enclosure"][0]
@@ -74,6 +90,7 @@ def download_podcast_episode(episode, podcast_dir) -> None:
 
     if os.path.isfile(episode_audio_file):
         print(f"found: {episode_audio_file}")
+        return False
     else:
         with urlopen(Request(episode_link["href"], headers=headers)) as response:
             with open(episode_audio_file, "wb") as af:
@@ -87,6 +104,7 @@ def download_podcast_episode(episode, podcast_dir) -> None:
             "sumary": episode.summary if episode.summary else "unknown",
         }
         tf.write(yaml.dump(metadata))
+    return True
 
 
 def parse_rss_date(datestring: str) -> dt:
