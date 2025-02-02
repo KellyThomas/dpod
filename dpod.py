@@ -82,9 +82,9 @@ def download_podcast_episode(episode, podcast_dir) -> None:
 
     with open(episode_txt_file, "w") as tf:
         metadata = {
-            "title": episode.title,
-            "duration": episode.itunes_duration,
-            "sumary": episode.summary,
+            "title": episode.title if episode.title else "unknow",
+            "duration":episode.itunes_duration if "itunes_duration" in episode else "unknown",
+            "sumary": episode.summary if episode.summary else "unknown",
         }
         tf.write(yaml.dump(metadata))
 
