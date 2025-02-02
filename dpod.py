@@ -10,12 +10,13 @@ from slugify import slugify
 import os
 from datetime import datetime as dt
 import shutil
-import urllib.request
+from urllib.request import urlopen, Request
 import yaml
 import argparse
 
 
 mime_extentions = {"audio/mpeg": "mp3"}
+headers =  {'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:134.0) Gecko/20100101 Firefox/134.0"}
 
 
 def main():
@@ -74,7 +75,7 @@ def download_podcast_episode(episode, podcast_dir) -> None:
     if os.path.isfile(episode_audio_file):
         print(f"found: {episode_audio_file}")
     else:
-        with urllib.request.urlopen(episode_link["href"]) as response:
+        with urlopen(Request(episode_link["href"], headers=headers)) as response:
             with open(episode_audio_file, "wb") as af:
                 shutil.copyfileobj(response, af)
                 print(f"downloaded: {episode_audio_file}")
