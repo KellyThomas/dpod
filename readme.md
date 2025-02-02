@@ -20,13 +20,17 @@ Podcast downloader
 
 ```
 > python .\dpod.py --help
-usage: dpod.py [-h] [--home_dir HOME_DIR] [--url URL] [--urls URLS]
+usage: dpod.py [-h] [--home_dir HOME_DIR] [--url URL] [--urls URLS] [--limit_podcast LIMIT_PODCAST] [--limit_total LIMIT_TOTAL]
 
 options:
-  -h, --help           show this help message and exit
-  --home_dir HOME_DIR  Path to download home directory, defaults to current directory
-  --url URL            URL for a single RSS feed
-  --urls URLS          Path for text file listing URLs for a multiple RSS feeds
+  -h, --help            show this help message and exit
+  --home_dir HOME_DIR   Path to download home directory, defaults to current directory
+  --url URL             URL for a single RSS feed
+  --urls URLS           Path for text file listing URLs for a multiple RSS feeds
+  --limit_podcast LIMIT_PODCAST
+                        episode limit per podcast
+  --limit_total LIMIT_TOTAL
+                        total episode limit for the batch
 
 Either the --url or --urls must be provided
 ```
